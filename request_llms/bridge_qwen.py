@@ -6,17 +6,16 @@ from transformers import AutoModel, AutoTokenizer
 import time
 import threading
 import importlib
-from toolbox import update_ui, get_conf
+from toolbox import update_ui, get_conf, ProxyNetworkActivate
 from multiprocessing import Process, Pipe
-from .local_llm_class import LocalLLMHandle, get_local_llm_predict_fns, SingletonLocalLLM
+from .local_llm_class import LocalLLMHandle, get_local_llm_predict_fns
 
 
 
 # ------------------------------------------------------------------------------------------------------------------------
 # 🔌💻 Local Model
 # ------------------------------------------------------------------------------------------------------------------------
-@SingletonLocalLLM
-class GetONNXGLMHandle(LocalLLMHandle):
+class GetQwenLMHandle(LocalLLMHandle):
 
     def load_model_info(self):
         # 🏃‍♂️🏃‍♂️🏃‍♂️ 子进程执行
@@ -30,13 +29,13 @@ class GetONNXGLMHandle(LocalLLMHandle):
         import platform
         from modelscope import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
 
-        model_id = 'qwen/Qwen-7B-Chat'
-        revision = 'v1.0.1'
-        self._tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision, trust_remote_code=True)
-        # use fp16
-        model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", revision=revision, trust_remote_code=True, fp16=True).eval()
-        model.generation_config = GenerationConfig.from_pretrained(model_id, trust_remote_code=True)  # 可指定不同的生成长度、top_p等相关超参
-        self._model = model
+        with ProxyNetworkActivate('Download_LLM'):
+            model_id = 'qwen/Qwen-7B-Chat'
+            self._tokenizer = AutoTokenizer.from_pretrained('Qwen/Qwen-7B-Chat', trust_remote_code=True, resume_download=True)
+            # use fp16
+            model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", trust_remote_code=True, fp16=True).eval()
+            model.generation_config = GenerationConfig.from_pretrained(model_id, trust_remote_code=True)  # 可指定不同的生成长度、top_p等相关超参
+            self._model = model
 
         return self._model, self._tokenizer
 
@@ -65,4 +64,4 @@ class GetONNXGLMHandle(LocalLLMHandle):
 # ------------------------------------------------------------------------------------------------------------------------
 # 🔌💻 GPT-Academic Interface
 # ------------------------------------------------------------------------------------------------------------------------
-predict_no_ui_long_connection, predict = get_local_llm_predict_fns(GetONNXGLMHandle, model_name)
+predict_no_ui_long_connection, predict = get_local_llm_predict_fns(GetQwenLMHandle, model_name)

@@ -5,15 +5,14 @@ cmd_to_install = "`pip install -r request_llms/requirements_chatglm.txt`"
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 from toolbox import update_ui, get_conf, ProxyNetworkActivate
 from multiprocessing import Process, Pipe
-from .local_llm_class import LocalLLMHandle, get_local_llm_predict_fns, SingletonLocalLLM
+from .local_llm_class import LocalLLMHandle, get_local_llm_predict_fns
 from threading import Thread
 
 
 # ------------------------------------------------------------------------------------------------------------------------
 # 🔌💻 Local Model
 # ------------------------------------------------------------------------------------------------------------------------
-@SingletonLocalLLM
-class GetONNXGLMHandle(LocalLLMHandle):
+class GetLlamaHandle(LocalLLMHandle):
 
     def load_model_info(self):
         # 🏃‍♂️🏃‍♂️🏃‍♂️ 子进程执行
@@ -88,4 +87,4 @@ class GetONNXGLMHandle(LocalLLMHandle):
 # ------------------------------------------------------------------------------------------------------------------------
 # 🔌💻 GPT-Academic Interface
 # ------------------------------------------------------------------------------------------------------------------------
-predict_no_ui_long_connection, predict = get_local_llm_predict_fns(GetONNXGLMHandle, model_name)
+predict_no_ui_long_connection, predict = get_local_llm_predict_fns(GetLlamaHandle, model_name)
